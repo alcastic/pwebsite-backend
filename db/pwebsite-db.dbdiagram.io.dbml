@@ -1,0 +1,11 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table messages {
+  id serial [primary key]
+  remote_addr varchar [not null]
+  content varchar
+  author_name varchar
+  author_email varchar
+  created_at timestamp [not null, default: `now()`]
+}
