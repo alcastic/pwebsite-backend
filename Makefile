@@ -6,3 +6,6 @@ migrateup:
 
 migratedown:
 	migrate -database postgresql://root:secret@localhost:5432/pwebsite-db?sslmode=disable -path db/migrations down
+
+run:
+	go run cmd/pwebsite-backend.go
