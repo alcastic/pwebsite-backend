@@ -5,15 +5,14 @@
 package sqlc
 
 import (
-	"database/sql"
 	"time"
 )
 
 type Message struct {
-	ID          int32          `json:"id"`
-	RemoteAddr  string         `json:"remoteAddr"`
-	Content     sql.NullString `json:"content"`
-	AuthorName  sql.NullString `json:"authorName"`
-	AuthorEmail sql.NullString `json:"authorEmail"`
-	CreatedAt   time.Time      `json:"createdAt"`
+	ID          int32     `json:"id"`
+	RemoteAddr  string    `json:"remoteAddr"`
+	Content     string    `json:"content"`
+	AuthorName  string    `json:"authorName"`
+	AuthorEmail string    `json:"authorEmail"`
+	CreatedAt   time.Time `json:"createdAt"`
 }

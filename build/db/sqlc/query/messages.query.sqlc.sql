@@ -4,7 +4,7 @@ WHERE id = $1 LIMIT 1;
 
 -- name: ListMessages :many
 SELECT * FROM messages
-LIMIT sqlc.arg(page_size) OFFSET sqlc.arg(page_Number);
+LIMIT sqlc.arg(page_size) OFFSET sqlc.arg(page_offset);
 
 -- name: CreateMessage :one
 INSERT INTO messages (

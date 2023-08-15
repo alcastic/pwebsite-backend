@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 
-	"github.com/alcastic/pwebsite-backend/internal/generated/sqlc"
+	"github.com/alcastic/pwebsite-backend/api"
+	"github.com/alcastic/pwebsite-backend/internal/persistence"
 	_ "github.com/lib/pq"
 )
 
@@ -35,16 +35,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	queries := sqlc.New(db)
+	store := persistence.NewStore(db)
+	server := api.NewServer(store)
 
-	lmp := sqlc.ListMessagesParams{PageSize: 2, PageNumber: 0}
-	messages, err := queries.ListMessages(context.Background(), lmp)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, msg := range messages {
-		fmt.Println(msg)
+	if sErr := server.Start("0.0.0.0:8080"); sErr != nil {
+		log.Fatal(sErr)
 	}
 }

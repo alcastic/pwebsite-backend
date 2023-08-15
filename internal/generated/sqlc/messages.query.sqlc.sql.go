@@ -7,7 +7,6 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createMessage = `-- name: CreateMessage :one
@@ -20,10 +19,10 @@ RETURNING id, remote_addr, content, author_name, author_email, created_at
 `
 
 type CreateMessageParams struct {
-	RemoteAddr  string         `json:"remoteAddr"`
-	Content     sql.NullString `json:"content"`
-	AuthorName  sql.NullString `json:"authorName"`
-	AuthorEmail sql.NullString `json:"authorEmail"`
+	RemoteAddr  string `json:"remoteAddr"`
+	Content     string `json:"content"`
+	AuthorName  string `json:"authorName"`
+	AuthorEmail string `json:"authorEmail"`
 }
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error) {
@@ -90,17 +89,17 @@ LIMIT $2 OFFSET $1
 `
 
 type ListMessagesParams struct {
-	PageNumber int32 `json:"pageNumber"`
+	PageOffset int32 `json:"pageOffset"`
 	PageSize   int32 `json:"pageSize"`
 }
 
 func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]Message, error) {
-	rows, err := q.db.QueryContext(ctx, listMessages, arg.PageNumber, arg.PageSize)
+	rows, err := q.db.QueryContext(ctx, listMessages, arg.PageOffset, arg.PageSize)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Message
+	items := []Message{}
 	for rows.Next() {
 		var i Message
 		if err := rows.Scan(
@@ -133,9 +132,9 @@ RETURNING id, remote_addr, content, author_name, author_email, created_at
 `
 
 type UpdateMessageParams struct {
-	ID          int32          `json:"id"`
-	AuthorName  sql.NullString `json:"authorName"`
-	AuthorEmail sql.NullString `json:"authorEmail"`
+	ID          int32  `json:"id"`
+	AuthorName  string `json:"authorName"`
+	AuthorEmail string `json:"authorEmail"`
 }
 
 func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) (Message, error) {
