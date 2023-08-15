@@ -13,10 +13,8 @@ fmt:
 run:
 	go run cmd/pwebsite-backend.go
 
-gen:
-	sqlc generate
-
-rmgen: 
+clean: 
 	rm -rf internal/generated/*
 
-clean: rmgen
+gen: clean
+	sqlc generate

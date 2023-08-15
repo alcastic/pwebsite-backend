@@ -1,7 +1,3 @@
--- name: GetMessage :one
-SELECT * FROM messages
-WHERE id = $1 LIMIT 1;
-
 -- name: ListMessages :many
 SELECT * FROM messages
 LIMIT sqlc.arg(page_size) OFFSET sqlc.arg(page_offset);
@@ -14,14 +10,8 @@ INSERT INTO messages (
 )
 RETURNING *;
 
--- name: DeleteMessage :one
-DELETE FROM messages
-WHERE id = $1
-RETURNING *;
-
--- name: UpdateMessage :one
-UPDATE messages SET
-  author_name = $2,
-  author_email = $3
-WHERE id = $1 
-RETURNING *;
+-- name: GetLastMessageFromRemoteAddr :one
+SELECT * FROM messages
+WHERE remote_addr = sqlc.arg(remote_addr)
+ORDER BY created_at DESC 
+LIMIT 1;

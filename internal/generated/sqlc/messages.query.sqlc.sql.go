@@ -25,7 +25,7 @@ type CreateMessageParams struct {
 	AuthorEmail string `json:"authorEmail"`
 }
 
-func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error) {
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (*Message, error) {
 	row := q.db.QueryRowContext(ctx, createMessage,
 		arg.RemoteAddr,
 		arg.Content,
@@ -41,36 +41,18 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 		&i.AuthorEmail,
 		&i.CreatedAt,
 	)
-	return i, err
+	return &i, err
 }
 
-const deleteMessage = `-- name: DeleteMessage :one
-DELETE FROM messages
-WHERE id = $1
-RETURNING id, remote_addr, content, author_name, author_email, created_at
-`
-
-func (q *Queries) DeleteMessage(ctx context.Context, id int32) (Message, error) {
-	row := q.db.QueryRowContext(ctx, deleteMessage, id)
-	var i Message
-	err := row.Scan(
-		&i.ID,
-		&i.RemoteAddr,
-		&i.Content,
-		&i.AuthorName,
-		&i.AuthorEmail,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getMessage = `-- name: GetMessage :one
+const getLastMessageFromRemoteAddr = `-- name: GetLastMessageFromRemoteAddr :one
 SELECT id, remote_addr, content, author_name, author_email, created_at FROM messages
-WHERE id = $1 LIMIT 1
+WHERE remote_addr = $1
+ORDER BY created_at ASC 
+LIMIT 1
 `
 
-func (q *Queries) GetMessage(ctx context.Context, id int32) (Message, error) {
-	row := q.db.QueryRowContext(ctx, getMessage, id)
+func (q *Queries) GetLastMessageFromRemoteAddr(ctx context.Context, remoteAddr string) (*Message, error) {
+	row := q.db.QueryRowContext(ctx, getLastMessageFromRemoteAddr, remoteAddr)
 	var i Message
 	err := row.Scan(
 		&i.ID,
@@ -80,7 +62,7 @@ func (q *Queries) GetMessage(ctx context.Context, id int32) (Message, error) {
 		&i.AuthorEmail,
 		&i.CreatedAt,
 	)
-	return i, err
+	return &i, err
 }
 
 const listMessages = `-- name: ListMessages :many
@@ -93,13 +75,13 @@ type ListMessagesParams struct {
 	PageSize   int32 `json:"pageSize"`
 }
 
-func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]Message, error) {
+func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]*Message, error) {
 	rows, err := q.db.QueryContext(ctx, listMessages, arg.PageOffset, arg.PageSize)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Message{}
+	items := []*Message{}
 	for rows.Next() {
 		var i Message
 		if err := rows.Scan(
@@ -112,7 +94,7 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]M
 		); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, &i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -121,32 +103,4 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]M
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateMessage = `-- name: UpdateMessage :one
-UPDATE messages SET
-  author_name = $2,
-  author_email = $3
-WHERE id = $1 
-RETURNING id, remote_addr, content, author_name, author_email, created_at
-`
-
-type UpdateMessageParams struct {
-	ID          int32  `json:"id"`
-	AuthorName  string `json:"authorName"`
-	AuthorEmail string `json:"authorEmail"`
-}
-
-func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) (Message, error) {
-	row := q.db.QueryRowContext(ctx, updateMessage, arg.ID, arg.AuthorName, arg.AuthorEmail)
-	var i Message
-	err := row.Scan(
-		&i.ID,
-		&i.RemoteAddr,
-		&i.Content,
-		&i.AuthorName,
-		&i.AuthorEmail,
-		&i.CreatedAt,
-	)
-	return i, err
 }
