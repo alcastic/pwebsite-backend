@@ -47,7 +47,7 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (*
 const getLastMessageFromRemoteAddr = `-- name: GetLastMessageFromRemoteAddr :one
 SELECT id, remote_addr, content, author_name, author_email, created_at FROM messages
 WHERE remote_addr = $1
-ORDER BY created_at ASC 
+ORDER BY created_at DESC 
 LIMIT 1
 `
 

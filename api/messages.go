@@ -14,16 +14,20 @@ import (
 //TODO: business logic must be moved to a service layer
 
 type getMessagesQuery struct {
-	PageNumber int32 `form:"pageNumber" binding:"required"`
-	PageSize   int32 `form:"pageSize" binding:"required"`
+	PageNumber int32 `form:"pageNumber" binding:"required,min=1"`
+	PageSize   int32 `form:"pageSize" binding:"required,min=1,max=20"`
 }
 
 func (s *Server) getMessages(ctx *gin.Context) {
 	var query getMessagesQuery
-	ctx.ShouldBindQuery(&query)
+	err := ctx.ShouldBind(&query)
+	if err!=nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	params := sqlc.ListMessagesParams{
-		PageOffset: query.PageNumber * query.PageSize,
+		PageOffset: (query.PageNumber - 1) * query.PageSize,
 		PageSize:   query.PageSize,
 	}
 
@@ -35,7 +39,7 @@ func (s *Server) getMessages(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &messages)
 }
 
-type MessageBody struct {
+type messageBody struct {
 	Content     string `json:"content"`
 	AuthorName  string `json:"authorName"`
 	AuthorEmail string `json:"authorEmail"`
@@ -50,7 +54,7 @@ func previousMessageRestriction(msg *sqlc.Message) bool {
 }
 
 func (s *Server) addMessage(ctx *gin.Context) {
-	var body MessageBody
+	var body messageBody
 	err := ctx.BindJSON(&body)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
