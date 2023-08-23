@@ -2,35 +2,38 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"log"
 
 	"github.com/alcastic/pwebsite-backend/api"
+	"github.com/alcastic/pwebsite-backend/configs"
 	"github.com/alcastic/pwebsite-backend/internal/persistence"
 	_ "github.com/lib/pq"
 )
 
-var dbusername string
-var dbuserpass string
-var dbhost string
-var dbport string
-var dbname string
-var dbsslmode string
+var config *configs.Config
 
 func init() {
-	flag.StringVar(&dbusername, "dbusername", "postgres", "database user name")
-	flag.StringVar(&dbuserpass, "dbuserpass", "password", "database user password")
-	flag.StringVar(&dbhost, "dbhost", "localhost", "database hostname")
-	flag.StringVar(&dbport, "dbport", "5432", "database port")
-	flag.StringVar(&dbname, "dbname", "postgres", "database name")
-	flag.StringVar(&dbsslmode, "dbsslmode", "disable", "database ssl mode (disable, allow, prefer, require, verify-ca, verify-full)")
+	var err error
+	config, err = configs.Configure()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
 	log.Print("starting")
-	connStr := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s", dbusername, dbuserpass, dbhost, dbport, dbname, dbsslmode)
-	db, err := sql.Open("postgres", connStr)
+
+	connStr := fmt.Sprintf(
+		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
+		config.DBUser,
+		config.DBPass,
+		config.DBHost,
+		config.DBPort,
+		config.DBName,
+		config.DBSsslMode,
+	)
+	db, err := sql.Open(config.DBDriver, connStr)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -21,7 +21,7 @@ type getMessagesQuery struct {
 func (s *Server) getMessages(ctx *gin.Context) {
 	var query getMessagesQuery
 	err := ctx.ShouldBind(&query)
-	if err!=nil {
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
